@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Premium Trading Suite</title>
-    <!-- Подключение официального скрипта Telegram WebApp -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://telegram.org"></script>
     <style>
         body {
-            background-color: #FDFBF7; /* Роскошный матовый молочно-белый фон */
-            color: #2C2A29; /* Глубокий благородный темно-серый для текста */
+            background-color: #FDFBF7;
+            color: #2C2A29;
             font-family: 'Times New Roman', Times, serif;
             margin: 0;
             padding: 24px;
@@ -17,30 +16,63 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            height: 90vh;
+            height: 100vh;
             box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .top-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .header {
             text-align: center;
             letter-spacing: 5px;
             font-size: 19px;
-            color: #C5A059; /* Мягкое благородное золото */
+            color: #C5A059;
             margin-bottom: 25px;
             text-transform: uppercase;
             font-weight: 400;
         }
+        .market-selectors {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 340px;
+            margin-bottom: 20px;
+        }
+        select {
+            flex: 1;
+            background-color: #FFFFFF;
+            border: 1px solid #E5DCC6;
+            color: #2C2A29;
+            padding: 12px;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 14px;
+            outline: none;
+            letter-spacing: 1px;
+            border-radius: 0;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='10' height='10' viewBox='0 0 10 10'><path fill='%23C5A059' d='M0 3l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
         .card {
-            border: 1px solid #E5DCC6; /* Тонкая золотисто-кремовая рамка */
+            border: 1px solid #E5DCC6;
             background: #FFFFFF;
             padding: 25px;
             width: 100%;
             max-width: 340px;
-            border-radius: 2px;
-            box-shadow: 0 10px 30px rgba(197, 160, 89, 0.08); /* Едва заметная золотистая тень */
+            box-shadow: 0 10px 30px rgba(197, 160, 89, 0.04);
             opacity: 0;
             transform: translateY(15px);
-            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); /* Ультра-плавное скольжение */
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
             box-sizing: border-box;
+            margin-top: 10px;
         }
         .card.active {
             opacity: 1;
@@ -49,12 +81,12 @@
         .data-item {
             margin-bottom: 14px;
             font-size: 15px;
-            border-bottom: 1px solid #F3ECE0; /* Деликатный светлый разделитель */
+            border-bottom: 1px solid #F3ECE0;
             padding-bottom: 8px;
             letter-spacing: 0.5px;
         }
         .data-label {
-            color: #9A9386; /* Приглушенный платиновый цвет для подписи */
+            color: #9A9386;
             font-style: italic;
             margin-right: 5px;
         }
@@ -63,9 +95,9 @@
             color: #2C2A29;
             text-align: center;
             margin-top: 20px;
-            letter-spacing: 3px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
         }
-        /* Премиальный лоадер */
         .loader {
             border: 2px solid #F3ECE0;
             border-top: 2px solid #C5A059;
@@ -80,7 +112,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Кнопки в стиле закрытых инвестиционных клубов */
         .btn-action {
             background-color: #FFFFFF;
             border: 1px solid #C5A059;
@@ -92,77 +123,136 @@
             text-transform: uppercase;
             font-size: 12px;
             width: 100%;
-            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.05);
+            max-width: 340px;
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.03);
         }
         .btn-action:hover {
             background-color: #C5A059;
             color: #FFFFFF;
-            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.2);
+            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.15);
+        }
+        .btn-action:active {
+            transform: scale(0.98);
         }
         .btn-secondary {
             background-color: transparent;
             border: 1px solid #B5AD9E;
             color: #8A8172;
+            margin-bottom: 10px;
         }
         .btn-secondary:hover {
             background-color: #8A8172;
             color: #FDFBF7;
             border-color: #8A8172;
         }
+        .error-msg {
+            color: #B85C5C;
+            text-align: center;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
 
-    <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+    <div class="top-container">
         <div class="header">✦  A I   A s s i s t a n t  ✦</div>
         
-        <!-- Кнопка запуска анализа -->
-        <button class="btn-action" id="analyzeBtn" onclick="startAnalysis()">✦ Evaluate Market ✦</button>
+        <div class="market-selectors">
+            <select id="assetSelect">
+                <option value="EURUSD">EUR/USD</option>
+                <option value="GBPUSD">GBP/USD</option>
+                <option value="AUDUSD">AUD/USD</option>
+                <option value="USDCAD">USD/CAD</option>
+            </select>
+            
+            <select id="timeSelect">
+                <option value="M1">1 Minute</option>
+                <option value="M5">5 Minutes</option>
+                <option value="M15">15 Minutes</option>
+            </select>
+        </div>
+
+        <button class="btn-action" id="analyzeBtn" onclick="requestRealAnalysis()">✦ Evaluate Market ✦</button>
         
         <div class="loader" id="marketLoader"></div>
+        <div class="error-msg" id="errorBlock">✦ Connection failed. Ensure server is active. ✦</div>
 
-        <!-- Аристократическая карточка сигнала -->
         <div class="card" id="resultCard">
-            <div class="data-item"><span class="data-label">Market:</span> EUR/USD — M1</div>
+            <div class="data-item"><span class="data-label">Market:</span> <span id="cardAsset">...</span></div>
             <div class="data-item"><span class="data-label">Trend:</span> <span id="aiTrend">...</span></div>
             <div class="data-item"><span class="data-label">Analysis:</span> <span id="aiAnalysis">...</span></div>
             <div class="data-item"><span class="data-label">Probability:</span> <span id="aiConfidence">...</span></div>
-            <div class="decision">Decision: <strong id="aiDecision" style="color: #C5A059;">...</strong></div>
+            <div class="decision">Decision: <strong id="aiDecision">...</strong></div>
         </div>
     </div>
 
-    <!-- Кнопка перехода по реферальной ссылке -->
     <button class="btn-action btn-secondary" onclick="openBroker()">⚜ Open Pocket Option ⚜</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем приложение на весь экран телефона для плавности
+        if (tg) {
+            tg.expand();
+        }
 
-        function startAnalysis() {
-            // Мягко прячем старую карточку
+        // Автоматически шлем запрос на твой запущенный Python-сервер на ПК (порт 5000)
+        const SERVER_URL = "http://localhost:5000"; 
+
+        function removeCard() {
             document.getElementById('resultCard').classList.remove('active');
-            
-            // Включаем элегантный лоадер
+            document.getElementById('errorBlock').style.display = 'none';
+        }
+
+        async function requestRealAnalysis() {
+            removeCard();
             document.getElementById('marketLoader').style.display = 'block';
 
-            // Имитация весомости анализа (задержка перед выводом)
-            setTimeout(() => {
-                document.getElementById('marketLoader').style.display = 'none';
-                
-                // В финальной версии сюда будут пробрасываться динамические данные из Python
-                document.getElementById('aiTrend').innerText = 'Bullish (Consolidation)';
-                document.getElementById('aiAnalysis').innerText = 'Price structural rejection at key level. RSI confirms oversold conditions.';
-                document.getElementById('aiConfidence').innerText = '91%';
-                document.getElementById('aiDecision').innerText = 'CALL';
+            const asset = document.getElementById('assetSelect').value;
+            const timeframe = document.getElementById('timeSelect').value;
 
-                // Плавно проявляем белую карточку
+            try {
+                const response = await fetch(`${SERVER_URL}/api/analyze?asset=${asset}&timeframe=${timeframe}`);
+                if (!response.ok) throw new Error('Server error');
+                
+                const data = await response.json();
+                document.getElementById('marketLoader').style.display = 'none';
+
+                document.getElementById('cardAsset').innerText = `${asset} — ${timeframe}`;
+                document.getElementById('aiTrend').innerText = data.trend;
+                document.getElementById('aiAnalysis').innerText = data.analysis;
+                document.getElementById('aiConfidence').innerText = data.confidence;
+                
+                const decElement = document.getElementById('aiDecision');
+                decElement.innerText = data.recommendation;
+
+                if (data.recommendation.toUpperCase() === "CALL") {
+                    decElement.style.color = "#7A9A60";
+                } else if (data.recommendation.toUpperCase() === "PUT") {
+                    decElement.style.color = "#B85C5C";
+                } else {
+                    decElement.style.color = "#C5A059";
+                }
+
                 document.getElementById('resultCard').classList.add('active');
-            }, 1800);
+
+            } catch (error) {
+                document.getElementById('marketLoader').style.display = 'none';
+                document.getElementById('errorBlock').style.display = 'block';
+                console.error(error);
+            }
         }
 
         function openBroker() {
-            // ВАЖНО: Вставь сюда свою реферальную ссылку вместо демонстрационной
-            tg.openLink('https://pocket-friends.co/r/lvno850mq1');
+            // ⚠️ ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ИЗ ПАРТНЕРКИ POCKET OPTION:
+            const myRefLink = 'https://pocketoption.com';
+            
+            if (tg && tg.openLink) {
+                tg.openLink(myRefLink);
+            } else {
+                window.open(myRefLink, '_blank');
+            }
         }
     </script>
 </body>
