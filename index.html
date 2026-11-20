@@ -33,24 +33,97 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
             min-height: 100vh;
         }
 
-        /* Заголовок */
         .header {
-            text-align: center;
-            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 0;
         }
 
         .header h1 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
             background: linear-gradient(90deg, #fff, var(--accent-gold));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .settings-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .settings-toggle.active {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        /* Выдвижная панель настроек */
+        .settings-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 0 16px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .settings-panel.open {
+            padding: 16px;
+            max-height: 360px;
+            opacity: 1;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        .setting-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .setting-input {
+            width: 80px;
+            background: #0b0e14;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 8px 10px;
+            color: var(--accent-gold);
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+        }
+
+        .setting-input:focus {
+            border-color: var(--accent-gold);
         }
 
         /* Статус подключения */
@@ -62,7 +135,6 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         }
 
         .status-left {
@@ -91,22 +163,15 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
         }
 
-        .status-text {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .status-sub {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
+        .status-text { font-size: 14px; font-weight: 600; }
+        .status-sub { font-size: 12px; color: var(--text-muted); }
 
         /* Карточка Итога */
         .net-card {
             background: linear-gradient(145deg, #161d29, #10151e);
             border: 1px solid var(--card-border);
             border-radius: 20px;
-            padding: 20px;
+            padding: 18px;
             text-align: center;
             transition: border-color 0.5s ease, box-shadow 0.5s ease;
         }
@@ -122,15 +187,15 @@
         }
 
         .net-label {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             color: var(--text-muted);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .net-value {
-            font-size: 34px;
+            font-size: 32px;
             font-weight: 800;
             transition: color 0.4s ease;
         }
@@ -146,26 +211,18 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 16px;
-            padding: 16px;
+            padding: 14px 16px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
 
-        .stat-title {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .stat-num {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
+        .stat-title { font-size: 12px; color: var(--text-muted); }
+        .stat-num { font-size: 19px; font-weight: 700; }
         .stat-num.win { color: var(--profit-green); }
         .stat-num.loss { color: var(--loss-red); }
 
-        /* Плавная индикация в ряд */
+        /* Лента сделок в ряд */
         .history-section {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -177,7 +234,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-size: 12px;
             color: var(--text-muted);
         }
@@ -191,12 +248,10 @@
             scrollbar-width: none;
         }
 
-        .history-row::-webkit-scrollbar {
-            display: none;
-        }
+        .history-row::-webkit-scrollbar { display: none; }
 
         .trade-pill {
-            min-width: 48px;
+            min-width: 52px;
             height: 36px;
             border-radius: 10px;
             display: flex;
@@ -211,31 +266,26 @@
         }
 
         @keyframes popIn {
-            to {
-                opacity: 1;
-                transform: scale(1) translateX(0);
-            }
+            to { opacity: 1; transform: scale(1) translateX(0); }
         }
 
         .trade-pill.win {
             background: var(--profit-bg);
             color: var(--profit-green);
             border: 1px solid rgba(0, 230, 118, 0.4);
-            box-shadow: 0 0 10px rgba(0, 230, 118, 0.15);
         }
 
         .trade-pill.loss {
             background: var(--loss-bg);
             color: var(--loss-red);
             border: 1px solid rgba(255, 61, 87, 0.4);
-            box-shadow: 0 0 10px rgba(255, 61, 87, 0.15);
         }
 
         .empty-history {
             font-size: 12px;
             color: var(--text-muted);
             font-style: italic;
-            padding: 8px 0;
+            padding: 6px 0;
         }
 
         /* Кнопки управления */
@@ -244,14 +294,14 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
-            padding-top: 8px;
+            padding-top: 6px;
         }
 
         .btn {
             border: none;
             border-radius: 14px;
-            padding: 16px;
-            font-size: 15px;
+            padding: 15px;
+            font-size: 14px;
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -259,9 +309,7 @@
             transition: all 0.25s ease;
         }
 
-        .btn:active {
-            transform: scale(0.96);
-        }
+        .btn:active { transform: scale(0.96); }
 
         .btn-start {
             background: linear-gradient(135deg, #00c853, #00e676);
@@ -293,7 +341,40 @@
 <body>
 
     <div class="header">
-        <h1>✦ Pocket Auto Suite ✦</h1>
+        <h1>✦ Pocket Auto Suite</h1>
+        <button class="settings-toggle" id="btnSettings" onclick="toggleSettings()">⚙ Настройки</button>
+    </div>
+
+    <!-- Выдвижные настройки стратегии -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="setting-row">
+            <div>
+                <div class="setting-label">Первая ставка (% от депо)</div>
+                <div class="setting-desc">Авторасчет от текущего баланса</div>
+            </div>
+            <input class="setting-input" id="inpPercent" type="number" value="2" step="0.5" min="0.5" onchange="saveSettings()">
+        </div>
+        <div class="setting-row">
+            <div>
+                <div class="setting-label">Множитель догона</div>
+                <div class="setting-desc">Умножение при минусе (для ~80% выплат)</div>
+            </div>
+            <input class="setting-input" id="inpMartingale" type="number" value="2.25" step="0.05" min="1" onchange="saveSettings()">
+        </div>
+        <div class="setting-row">
+            <div>
+                <div class="setting-label">Макс. шагов догона</div>
+                <div class="setting-desc">Стоп-кран при затяжной серии</div>
+            </div>
+            <input class="setting-input" id="inpMaxSteps" type="number" value="4" step="1" min="1" onchange="saveSettings()">
+        </div>
+        <div class="setting-row">
+            <div>
+                <div class="setting-label">Порог шкалы (%)</div>
+                <div class="setting-desc">Перевес покупателей/продавцов для входа</div>
+            </div>
+            <input class="setting-input" id="inpThreshold" type="number" value="10" step="1" min="1" onchange="saveSettings()">
+        </div>
     </div>
 
     <!-- Статус аккаунта -->
@@ -354,15 +435,39 @@
         let step = 1;
         let demoTimer = null;
 
+        // Загрузка сохраненных настроек
+        window.onload = () => {
+            if (localStorage.getItem('po_percent')) document.getElementById('inpPercent').value = localStorage.getItem('po_percent');
+            if (localStorage.getItem('po_martingale')) document.getElementById('inpMartingale').value = localStorage.getItem('po_martingale');
+            if (localStorage.getItem('po_maxSteps')) document.getElementById('inpMaxSteps').value = localStorage.getItem('po_maxSteps');
+            if (localStorage.getItem('po_threshold')) document.getElementById('inpThreshold').value = localStorage.getItem('po_threshold');
+        };
+
+        function saveSettings() {
+            localStorage.setItem('po_percent', document.getElementById('inpPercent').value);
+            localStorage.setItem('po_martingale', document.getElementById('inpMartingale').value);
+            localStorage.setItem('po_maxSteps', document.getElementById('inpMaxSteps').value);
+            localStorage.setItem('po_threshold', document.getElementById('inpThreshold').value);
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            const btn = document.getElementById('btnSettings');
+            panel.classList.toggle('open');
+            btn.classList.toggle('active');
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
         function updateUI() {
             const net = earned - lost;
             const netEl = document.getElementById('netValue');
             const netCard = document.getElementById('netCard');
+            const maxSteps = document.getElementById('inpMaxSteps').value;
 
             document.getElementById('earnedValue').innerText = `+$${earned.toFixed(2)}`;
             document.getElementById('lostValue').innerText = `-$${lost.toFixed(2)}`;
             document.getElementById('tradeCount').innerText = `${trades} сделок`;
-            document.getElementById('stepBadge').innerText = isRunning ? `Колено: ${step}` : 'Шаг: 0';
+            document.getElementById('stepBadge').innerText = isRunning ? `Колено: ${step}/${maxSteps}` : 'Шаг: 0';
 
             if (net > 0) {
                 netEl.innerText = `+$${net.toFixed(2)}`;
@@ -384,28 +489,33 @@
             const emptyText = document.getElementById('emptyText');
             if (emptyText) emptyText.remove();
 
+            const maxSteps = parseInt(document.getElementById('inpMaxSteps').value) || 4;
+
             const pill = document.createElement('div');
             pill.className = `trade-pill ${isWin ? 'win' : 'loss'}`;
             pill.innerText = isWin ? `+$${amount.toFixed(1)}` : `-$${amount.toFixed(1)}`;
 
-            // Добавляем в начало ряда, чтобы новые плавно выезжали слева
             row.insertBefore(pill, row.firstChild);
 
             trades++;
             if (isWin) {
                 earned += amount;
-                step = 1; // Сброс догона при победе
+                step = 1;
             } else {
                 lost += amount;
-                step++; // Увеличение шага догона при убытке
+                step = (step >= maxSteps) ? 1 : step + 1;
             }
             updateUI();
         }
 
         function startBot() {
+            saveSettings();
             isRunning = true;
+
             document.getElementById('btnStart').disabled = true;
             document.getElementById('btnStop').disabled = false;
+            document.getElementById('settingsPanel').classList.remove('open');
+            document.getElementById('btnSettings').classList.remove('active');
 
             const dot = document.getElementById('statusDot');
             dot.classList.add('connected');
@@ -414,13 +524,16 @@
 
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-            // Демо-режим для проверки анимации (позже заменим на связь с Python-ботом)
-            let baseBet = 2.0;
+            // Демо-симуляция на основе твоих настроек
+            const percent = parseFloat(document.getElementById('inpPercent').value) || 2;
+            const mult = parseFloat(document.getElementById('inpMartingale').value) || 2.25;
+            const demoBalance = 100; // Условный баланс $100 для теста
 
             demoTimer = setInterval(() => {
                 if (!isRunning) return;
 
-                let currentBet = baseBet * Math.pow(2.2, step - 1);
+                let baseBet = (demoBalance * percent) / 100;
+                let currentBet = baseBet * Math.pow(mult, step - 1);
                 let isWin = Math.random() > 0.45;
                 let resultAmount = isWin ? currentBet * 0.85 : currentBet;
 
@@ -445,4 +558,4 @@
         }
     </script>
 </body>
-                                                                                                            </html>
+    </html>
