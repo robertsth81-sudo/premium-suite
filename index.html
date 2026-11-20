@@ -2,258 +2,447 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Premium Trading Suite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pocket Auto-Trader</title>
     <script src="https://telegram.org"></script>
     <style>
-        body {
-            background-color: #FDFBF7;
-            color: #2C2A29;
-            font-family: 'Times New Roman', Times, serif;
-            margin: 0;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            height: 100vh;
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: #131822;
+            --card-border: #1e2636;
+            --text-main: #f0f4f8;
+            --text-muted: #8a99ad;
+            --accent-gold: #d4af37;
+            --profit-green: #00e676;
+            --profit-bg: rgba(0, 230, 118, 0.12);
+            --loss-red: #ff3d57;
+            --loss-bg: rgba(255, 61, 87, 0.12);
+        }
+
+        * {
             box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        .top-container {
-            width: 100%;
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 16px;
+            min-height: 100vh;
         }
+
+        /* Заголовок */
         .header {
             text-align: center;
-            letter-spacing: 5px;
-            font-size: 19px;
-            color: #C5A059;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            font-weight: 400;
+            padding: 8px 0;
         }
-        .market-selectors {
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #fff, var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Статус подключения */
+        .status-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px 18px;
             display: flex;
-            gap: 10px;
-            width: 100%;
-            max-width: 340px;
-            margin-bottom: 20px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         }
-        select {
-            flex: 1;
-            background-color: #FFFFFF;
-            border: 1px solid #E5DCC6;
-            color: #2C2A29;
-            padding: 12px;
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 14px;
-            outline: none;
-            letter-spacing: 1px;
-            border-radius: 0;
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='10' height='10' viewBox='0 0 10 10'><path fill='%23C5A059' d='M0 3l5 5 5-5z'/></svg>");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .card {
-            border: 1px solid #E5DCC6;
-            background: #FFFFFF;
-            padding: 25px;
-            width: 100%;
-            max-width: 340px;
-            box-shadow: 0 10px 30px rgba(197, 160, 89, 0.04);
-            opacity: 0;
-            transform: translateY(15px);
-            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-            box-sizing: border-box;
-            margin-top: 10px;
-        }
-        .card.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .data-item {
-            margin-bottom: 14px;
-            font-size: 15px;
-            border-bottom: 1px solid #F3ECE0;
-            padding-bottom: 8px;
-            letter-spacing: 0.5px;
-        }
-        .data-label {
-            color: #9A9386;
-            font-style: italic;
-            margin-right: 5px;
-        }
-        .decision {
-            font-size: 22px;
-            color: #2C2A29;
-            text-align: center;
-            margin-top: 20px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-        }
-        .loader {
-            border: 2px solid #F3ECE0;
-            border-top: 2px solid #C5A059;
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-            display: none;
-            margin: 30px auto;
+            background-color: var(--text-muted);
+            transition: all 0.4s ease;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .pulse-dot.connected {
+            background-color: var(--profit-green);
+            box-shadow: 0 0 12px var(--profit-green);
+            animation: pulse 2s infinite;
         }
-        .btn-action {
-            background-color: #FFFFFF;
-            border: 1px solid #C5A059;
-            color: #C5A059;
-            padding: 14px 30px;
-            cursor: pointer;
-            letter-spacing: 3px;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            text-transform: uppercase;
-            font-size: 12px;
-            width: 100%;
-            max-width: 340px;
-            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.03);
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
         }
-        .btn-action:hover {
-            background-color: #C5A059;
-            color: #FFFFFF;
-            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.15);
-        }
-        .btn-action:active {
-            transform: scale(0.98);
-        }
-        .btn-secondary {
-            background-color: transparent;
-            border: 1px solid #B5AD9E;
-            color: #8A8172;
-            margin-bottom: 10px;
-        }
-        .btn-secondary:hover {
-            background-color: #8A8172;
-            color: #FDFBF7;
-            border-color: #8A8172;
-        }
-        .error-msg {
-            color: #B85C5C;
-            text-align: center;
+
+        .status-text {
             font-size: 14px;
-            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .status-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Карточка Итога */
+        .net-card {
+            background: linear-gradient(145deg, #161d29, #10151e);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: border-color 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .net-card.positive {
+            border-color: rgba(0, 230, 118, 0.35);
+            box-shadow: 0 8px 25px rgba(0, 230, 118, 0.08);
+        }
+
+        .net-card.negative {
+            border-color: rgba(255, 61, 87, 0.35);
+            box-shadow: 0 8px 25px rgba(255, 61, 87, 0.08);
+        }
+
+        .net-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .net-value {
+            font-size: 34px;
+            font-weight: 800;
+            transition: color 0.4s ease;
+        }
+
+        /* Сетка Заработано / Потеряно */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-title {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .stat-num {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .stat-num.win { color: var(--profit-green); }
+        .stat-num.loss { color: var(--loss-red); }
+
+        /* Плавная индикация в ряд */
+        .history-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px 16px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .history-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+
+        .history-row::-webkit-scrollbar {
             display: none;
+        }
+
+        .trade-pill {
+            min-width: 48px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+            opacity: 0;
+            transform: scale(0.7) translateX(-10px);
+            animation: popIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            to {
+                opacity: 1;
+                transform: scale(1) translateX(0);
+            }
+        }
+
+        .trade-pill.win {
+            background: var(--profit-bg);
+            color: var(--profit-green);
+            border: 1px solid rgba(0, 230, 118, 0.4);
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.15);
+        }
+
+        .trade-pill.loss {
+            background: var(--loss-bg);
+            color: var(--loss-red);
+            border: 1px solid rgba(255, 61, 87, 0.4);
+            box-shadow: 0 0 10px rgba(255, 61, 87, 0.15);
+        }
+
+        .empty-history {
+            font-size: 12px;
+            color: var(--text-muted);
             font-style: italic;
+            padding: 8px 0;
+        }
+
+        /* Кнопки управления */
+        .controls {
+            margin-top: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding-top: 8px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #00c853, #00e676);
+            color: #051b0e;
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+        }
+
+        .btn-start:disabled {
+            background: #1c2432;
+            color: #526075;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #d50000, #ff3d57);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 61, 87, 0.3);
+        }
+
+        .btn-stop:disabled {
+            background: #1c2432;
+            color: #526075;
+            box-shadow: none;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
 
-    <div class="top-container">
-        <div class="header">✦  A I   A s s i s t a n t  ✦</div>
-        
-        <div class="market-selectors">
-            <select id="assetSelect">
-                <option value="EURUSD">EUR/USD</option>
-                <option value="GBPUSD">GBP/USD</option>
-                <option value="AUDUSD">AUD/USD</option>
-                <option value="USDCAD">USD/CAD</option>
-            </select>
-            
-            <select id="timeSelect">
-                <option value="M1">1 Minute</option>
-                <option value="M5">5 Minutes</option>
-                <option value="M15">15 Minutes</option>
-            </select>
+    <div class="header">
+        <h1>✦ Pocket Auto Suite ✦</h1>
+    </div>
+
+    <!-- Статус аккаунта -->
+    <div class="status-card">
+        <div class="status-left">
+            <div class="pulse-dot" id="statusDot"></div>
+            <div>
+                <div class="status-text" id="statusTitle">Ожидание запуска</div>
+                <div class="status-sub" id="statusSub">Pocket Option • Готов к работе</div>
+            </div>
         </div>
+        <div style="font-size: 12px; color: var(--accent-gold); font-weight: 600;" id="stepBadge">Шаг: 0</div>
+    </div>
 
-        <button class="btn-action" id="analyzeBtn" onclick="requestRealAnalysis()">✦ Evaluate Market ✦</button>
-        
-        <div class="loader" id="marketLoader"></div>
-        <div class="error-msg" id="errorBlock">✦ Connection failed. Ensure server is active. ✦</div>
+    <!-- Итоговый результат -->
+    <div class="net-card" id="netCard">
+        <div class="net-label">Чистый итог сессии</div>
+        <div class="net-value" id="netValue">$0.00</div>
+    </div>
 
-        <div class="card" id="resultCard">
-            <div class="data-item"><span class="data-label">Market:</span> <span id="cardAsset">...</span></div>
-            <div class="data-item"><span class="data-label">Trend:</span> <span id="aiTrend">...</span></div>
-            <div class="data-item"><span class="data-label">Analysis:</span> <span id="aiAnalysis">...</span></div>
-            <div class="data-item"><span class="data-label">Probability:</span> <span id="aiConfidence">...</span></div>
-            <div class="decision">Decision: <strong id="aiDecision">...</strong></div>
+    <!-- Заработано / Потеряно -->
+    <div class="stats-grid">
+        <div class="stat-box">
+            <span class="stat-title">Заработано</span>
+            <span class="stat-num win" id="earnedValue">+$0.00</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-title">Потеряно</span>
+            <span class="stat-num loss" id="lostValue">-$0.00</span>
         </div>
     </div>
 
-    <button class="btn-action btn-secondary" onclick="openBroker()">⚜ Open Pocket Option ⚜</button>
+    <!-- Лента индикации сделок в ряд -->
+    <div class="history-section">
+        <div class="history-header">
+            <span>Лента сделок (в реальном времени)</span>
+            <span id="tradeCount">0 сделок</span>
+        </div>
+        <div class="history-row" id="historyRow">
+            <div class="empty-history" id="emptyText">Нажмите «Запуск» для старта торговли...</div>
+        </div>
+    </div>
+
+    <!-- Кнопки Запуск и Стоп -->
+    <div class="controls">
+        <button class="btn btn-start" id="btnStart" onclick="startBot()">▶ Запуск</button>
+        <button class="btn btn-stop" id="btnStop" onclick="stopBot()" disabled>■ Стоп</button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        if (tg) {
-            tg.expand();
-        }
+        tg.expand();
 
-        // Автоматически шлем запрос на твой запущенный Python-сервер на ПК (порт 5000)
-        const SERVER_URL = "http://localhost:5000"; 
+        let isRunning = false;
+        let earned = 0;
+        let lost = 0;
+        let trades = 0;
+        let step = 1;
+        let demoTimer = null;
 
-        function removeCard() {
-            document.getElementById('resultCard').classList.remove('active');
-            document.getElementById('errorBlock').style.display = 'none';
-        }
+        function updateUI() {
+            const net = earned - lost;
+            const netEl = document.getElementById('netValue');
+            const netCard = document.getElementById('netCard');
 
-        async function requestRealAnalysis() {
-            removeCard();
-            document.getElementById('marketLoader').style.display = 'block';
+            document.getElementById('earnedValue').innerText = `+$${earned.toFixed(2)}`;
+            document.getElementById('lostValue').innerText = `-$${lost.toFixed(2)}`;
+            document.getElementById('tradeCount').innerText = `${trades} сделок`;
+            document.getElementById('stepBadge').innerText = isRunning ? `Колено: ${step}` : 'Шаг: 0';
 
-            const asset = document.getElementById('assetSelect').value;
-            const timeframe = document.getElementById('timeSelect').value;
-
-            try {
-                const response = await fetch(`${SERVER_URL}/api/analyze?asset=${asset}&timeframe=${timeframe}`);
-                if (!response.ok) throw new Error('Server error');
-                
-                const data = await response.json();
-                document.getElementById('marketLoader').style.display = 'none';
-
-                document.getElementById('cardAsset').innerText = `${asset} — ${timeframe}`;
-                document.getElementById('aiTrend').innerText = data.trend;
-                document.getElementById('aiAnalysis').innerText = data.analysis;
-                document.getElementById('aiConfidence').innerText = data.confidence;
-                
-                const decElement = document.getElementById('aiDecision');
-                decElement.innerText = data.recommendation;
-
-                if (data.recommendation.toUpperCase() === "CALL") {
-                    decElement.style.color = "#7A9A60";
-                } else if (data.recommendation.toUpperCase() === "PUT") {
-                    decElement.style.color = "#B85C5C";
-                } else {
-                    decElement.style.color = "#C5A059";
-                }
-
-                document.getElementById('resultCard').classList.add('active');
-
-            } catch (error) {
-                document.getElementById('marketLoader').style.display = 'none';
-                document.getElementById('errorBlock').style.display = 'block';
-                console.error(error);
-            }
-        }
-
-        function openBroker() {
-            // ⚠️ ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ИЗ ПАРТНЕРКИ POCKET OPTION:
-            const myRefLink = 'https://pocketoption.com';
-            
-            if (tg && tg.openLink) {
-                tg.openLink(myRefLink);
+            if (net > 0) {
+                netEl.innerText = `+$${net.toFixed(2)}`;
+                netEl.style.color = 'var(--profit-green)';
+                netCard.className = 'net-card positive';
+            } else if (net < 0) {
+                netEl.innerText = `-$${Math.abs(net).toFixed(2)}`;
+                netEl.style.color = 'var(--loss-red)';
+                netCard.className = 'net-card negative';
             } else {
-                window.open(myRefLink, '_blank');
+                netEl.innerText = '$0.00';
+                netEl.style.color = 'var(--text-main)';
+                netCard.className = 'net-card';
             }
+        }
+
+        function addTradePill(amount, isWin) {
+            const row = document.getElementById('historyRow');
+            const emptyText = document.getElementById('emptyText');
+            if (emptyText) emptyText.remove();
+
+            const pill = document.createElement('div');
+            pill.className = `trade-pill ${isWin ? 'win' : 'loss'}`;
+            pill.innerText = isWin ? `+$${amount.toFixed(1)}` : `-$${amount.toFixed(1)}`;
+
+            // Добавляем в начало ряда, чтобы новые плавно выезжали слева
+            row.insertBefore(pill, row.firstChild);
+
+            trades++;
+            if (isWin) {
+                earned += amount;
+                step = 1; // Сброс догона при победе
+            } else {
+                lost += amount;
+                step++; // Увеличение шага догона при убытке
+            }
+            updateUI();
+        }
+
+        function startBot() {
+            isRunning = true;
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = false;
+
+            const dot = document.getElementById('statusDot');
+            dot.classList.add('connected');
+            document.getElementById('statusTitle').innerText = 'Подключено к аккаунту';
+            document.getElementById('statusSub').innerText = 'Pocket Option • Торговля активна';
+
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            // Демо-режим для проверки анимации (позже заменим на связь с Python-ботом)
+            let baseBet = 2.0;
+
+            demoTimer = setInterval(() => {
+                if (!isRunning) return;
+
+                let currentBet = baseBet * Math.pow(2.2, step - 1);
+                let isWin = Math.random() > 0.45;
+                let resultAmount = isWin ? currentBet * 0.85 : currentBet;
+
+                addTradePill(resultAmount, isWin);
+            }, 3000);
+        }
+
+        function stopBot() {
+            isRunning = false;
+            clearInterval(demoTimer);
+
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+
+            const dot = document.getElementById('statusDot');
+            dot.classList.remove('connected');
+            document.getElementById('statusTitle').innerText = 'Бот остановлен';
+            document.getElementById('statusSub').innerText = 'Pocket Option • Пауза';
+            document.getElementById('stepBadge').innerText = 'Шаг: 0';
+
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
         }
     </script>
 </body>
-</html>
+                                                                                                            </html>
