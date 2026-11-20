@@ -71,7 +71,6 @@
             color: var(--accent-gold);
         }
 
-        /* Выдвижная панель настроек */
         .settings-panel {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -126,7 +125,6 @@
             border-color: var(--accent-gold);
         }
 
-        /* Статус подключения */
         .status-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -166,7 +164,6 @@
         .status-text { font-size: 14px; font-weight: 600; }
         .status-sub { font-size: 12px; color: var(--text-muted); }
 
-        /* Карточка Итога */
         .net-card {
             background: linear-gradient(145deg, #161d29, #10151e);
             border: 1px solid var(--card-border);
@@ -200,7 +197,6 @@
             transition: color 0.4s ease;
         }
 
-        /* Сетка Заработано / Потеряно */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -222,7 +218,6 @@
         .stat-num.win { color: var(--profit-green); }
         .stat-num.loss { color: var(--loss-red); }
 
-        /* Лента сделок в ряд */
         .history-section {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -288,7 +283,6 @@
             padding: 6px 0;
         }
 
-        /* Кнопки управления */
         .controls {
             margin-top: auto;
             display: grid;
@@ -345,7 +339,6 @@
         <button class="settings-toggle" id="btnSettings" onclick="toggleSettings()">⚙ Настройки</button>
     </div>
 
-    <!-- Выдвижные настройки стратегии -->
     <div class="settings-panel" id="settingsPanel">
         <div class="setting-row">
             <div>
@@ -377,7 +370,6 @@
         </div>
     </div>
 
-    <!-- Статус аккаунта -->
     <div class="status-card">
         <div class="status-left">
             <div class="pulse-dot" id="statusDot"></div>
@@ -389,13 +381,11 @@
         <div style="font-size: 12px; color: var(--accent-gold); font-weight: 600;" id="stepBadge">Шаг: 0</div>
     </div>
 
-    <!-- Итоговый результат -->
     <div class="net-card" id="netCard">
         <div class="net-label">Чистый итог сессии</div>
         <div class="net-value" id="netValue">$0.00</div>
     </div>
 
-    <!-- Заработано / Потеряно -->
     <div class="stats-grid">
         <div class="stat-box">
             <span class="stat-title">Заработано</span>
@@ -407,7 +397,6 @@
         </div>
     </div>
 
-    <!-- Лента индикации сделок в ряд -->
     <div class="history-section">
         <div class="history-header">
             <span>Лента сделок (в реальном времени)</span>
@@ -418,7 +407,6 @@
         </div>
     </div>
 
-    <!-- Кнопки Запуск и Стоп -->
     <div class="controls">
         <button class="btn btn-start" id="btnStart" onclick="startBot()">▶ Запуск</button>
         <button class="btn btn-stop" id="btnStop" onclick="stopBot()" disabled>■ Стоп</button>
@@ -428,19 +416,15 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let isRunning = false;
-        let earned = 0;
-        let lost = 0;
-        let trades = 0;
-        let step = 1;
-        let demoTimer = null;
+        let API_URL = localStorage.getItem('po_api_url') || "http://localhost:8080";
+        let renderedTradesCount = 0;
 
-        // Загрузка сохраненных настроек
         window.onload = () => {
             if (localStorage.getItem('po_percent')) document.getElementById('inpPercent').value = localStorage.getItem('po_percent');
             if (localStorage.getItem('po_martingale')) document.getElementById('inpMartingale').value = localStorage.getItem('po_martingale');
             if (localStorage.getItem('po_maxSteps')) document.getElementById('inpMaxSteps').value = localStorage.getItem('po_maxSteps');
             if (localStorage.getItem('po_threshold')) document.getElementById('inpThreshold').value = localStorage.getItem('po_threshold');
+            setInterval(syncWithPC, 1000);
         };
 
         function saveSettings() {
@@ -451,109 +435,95 @@
         }
 
         function toggleSettings() {
-            const panel = document.getElementById('settingsPanel');
-            const btn = document.getElementById('btnSettings');
-            panel.classList.toggle('open');
-            btn.classList.toggle('active');
+            document.getElementById('settingsPanel').classList.toggle('open');
+            document.getElementById('btnSettings').classList.toggle('active');
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
 
-        function updateUI() {
-            const net = earned - lost;
-            const netEl = document.getElementById('netValue');
-            const netCard = document.getElementById('netCard');
-            const maxSteps = document.getElementById('inpMaxSteps').value;
+        async function syncWithPC() {
+            try {
+                const res = await fetch(`${API_URL}/status`);
+                const data = await res.json();
 
-            document.getElementById('earnedValue').innerText = `+$${earned.toFixed(2)}`;
-            document.getElementById('lostValue').innerText = `-$${lost.toFixed(2)}`;
-            document.getElementById('tradeCount').innerText = `${trades} сделок`;
-            document.getElementById('stepBadge').innerText = isRunning ? `Колено: ${step}/${maxSteps}` : 'Шаг: 0';
+                const dot = document.getElementById('statusDot');
+                if (data.connected && data.is_running) {
+                    dot.classList.add('connected');
+                    document.getElementById('statusTitle').innerText = `В работе • Баланс: $${data.balance.toFixed(2)}`;
+                    document.getElementById('statusSub').innerText = 'Pocket Option • 15 сек таймфрейм';
+                    document.getElementById('btnStart').disabled = true;
+                    document.getElementById('btnStop').disabled = false;
+                } else if (data.connected) {
+                    dot.classList.remove('connected');
+                    document.getElementById('statusTitle').innerText = `Подключено • Баланс: $${data.balance.toFixed(2)}`;
+                    document.getElementById('statusSub').innerText = 'Pocket Option • Ожидание запуска';
+                    document.getElementById('btnStart').disabled = false;
+                    document.getElementById('btnStop').disabled = true;
+                }
 
-            if (net > 0) {
-                netEl.innerText = `+$${net.toFixed(2)}`;
-                netEl.style.color = 'var(--profit-green)';
-                netCard.className = 'net-card positive';
-            } else if (net < 0) {
-                netEl.innerText = `-$${Math.abs(net).toFixed(2)}`;
-                netEl.style.color = 'var(--loss-red)';
-                netCard.className = 'net-card negative';
-            } else {
-                netEl.innerText = '$0.00';
-                netEl.style.color = 'var(--text-main)';
-                netCard.className = 'net-card';
+                const net = data.earned - data.lost;
+                const netEl = document.getElementById('netValue');
+                const netCard = document.getElementById('netCard');
+
+                document.getElementById('earnedValue').innerText = `+$${data.earned.toFixed(2)}`;
+                document.getElementById('lostValue').innerText = `-$${data.lost.toFixed(2)}`;
+                document.getElementById('tradeCount').innerText = `${data.trades.length} сделок`;
+                document.getElementById('stepBadge').innerText = data.is_running ? `Колено: ${data.step}/${data.config.max_steps}` : 'Шаг: 0';
+
+                if (net > 0) {
+                    netEl.innerText = `+$${net.toFixed(2)}`;
+                    netEl.style.color = 'var(--profit-green)';
+                    netCard.className = 'net-card positive';
+                } else if (net < 0) {
+                    netEl.innerText = `-$${Math.abs(net).toFixed(2)}`;
+                    netEl.style.color = 'var(--loss-red)';
+                    netCard.className = 'net-card negative';
+                } else {
+                    netEl.innerText = '$0.00';
+                    netEl.style.color = 'var(--text-main)';
+                    netCard.className = 'net-card';
+                }
+
+                if (data.trades.length !== renderedTradesCount) {
+                    const row = document.getElementById('historyRow');
+                    row.innerHTML = '';
+                    data.trades.forEach(t => {
+                        const pill = document.createElement('div');
+                        pill.className = `trade-pill ${t.win ? 'win' : 'loss'}`;
+                        pill.innerText = t.win ? `+$${t.amount.toFixed(1)}` : `-$${t.amount.toFixed(1)}`;
+                        row.appendChild(pill);
+                    });
+                    renderedTradesCount = data.trades.length;
+                }
+            } catch (e) {
+                document.getElementById('statusTitle').innerText = 'ПК не в сети';
+                document.getElementById('statusSub').innerText = 'Запустите bot.py на компьютере';
             }
         }
 
-        function addTradePill(amount, isWin) {
-            const row = document.getElementById('historyRow');
-            const emptyText = document.getElementById('emptyText');
-            if (emptyText) emptyText.remove();
-
-            const maxSteps = parseInt(document.getElementById('inpMaxSteps').value) || 4;
-
-            const pill = document.createElement('div');
-            pill.className = `trade-pill ${isWin ? 'win' : 'loss'}`;
-            pill.innerText = isWin ? `+$${amount.toFixed(1)}` : `-$${amount.toFixed(1)}`;
-
-            row.insertBefore(pill, row.firstChild);
-
-            trades++;
-            if (isWin) {
-                earned += amount;
-                step = 1;
-            } else {
-                lost += amount;
-                step = (step >= maxSteps) ? 1 : step + 1;
-            }
-            updateUI();
-        }
-
-        function startBot() {
+        async function startBot() {
             saveSettings();
-            isRunning = true;
-
-            document.getElementById('btnStart').disabled = true;
-            document.getElementById('btnStop').disabled = false;
-            document.getElementById('settingsPanel').classList.remove('open');
-            document.getElementById('btnSettings').classList.remove('active');
-
-            const dot = document.getElementById('statusDot');
-            dot.classList.add('connected');
-            document.getElementById('statusTitle').innerText = 'Подключено к аккаунту';
-            document.getElementById('statusSub').innerText = 'Pocket Option • Торговля активна';
-
+            if (API_URL.includes("localhost")) {
+                const url = prompt("Вставьте ссылку из Cloudflare Tunnel (https://...trycloudflare.com):");
+                if (url) {
+                    API_URL = url.replace(/\/$/, "");
+                    localStorage.setItem('po_api_url', API_URL);
+                }
+            }
+            await fetch(`${API_URL}/start`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    percent: document.getElementById('inpPercent').value,
+                    martingale: document.getElementById('inpMartingale').value,
+                    max_steps: document.getElementById('inpMaxSteps').value,
+                    threshold: document.getElementById('inpThreshold').value
+                })
+            });
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-
-            // Демо-симуляция на основе твоих настроек
-            const percent = parseFloat(document.getElementById('inpPercent').value) || 2;
-            const mult = parseFloat(document.getElementById('inpMartingale').value) || 2.25;
-            const demoBalance = 100; // Условный баланс $100 для теста
-
-            demoTimer = setInterval(() => {
-                if (!isRunning) return;
-
-                let baseBet = (demoBalance * percent) / 100;
-                let currentBet = baseBet * Math.pow(mult, step - 1);
-                let isWin = Math.random() > 0.45;
-                let resultAmount = isWin ? currentBet * 0.85 : currentBet;
-
-                addTradePill(resultAmount, isWin);
-            }, 3000);
         }
 
-        function stopBot() {
-            isRunning = false;
-            clearInterval(demoTimer);
-
-            document.getElementById('btnStart').disabled = false;
-            document.getElementById('btnStop').disabled = true;
-
-            const dot = document.getElementById('statusDot');
-            dot.classList.remove('connected');
-            document.getElementById('statusTitle').innerText = 'Бот остановлен';
-            document.getElementById('statusSub').innerText = 'Pocket Option • Пауза';
-            document.getElementById('stepBadge').innerText = 'Шаг: 0';
-
+        async function stopBot() {
+            await fetch(`${API_URL}/stop`, { method: "POST" });
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
         }
     </script>
